@@ -16,7 +16,8 @@ import com.hazelcast.test.HazelcastSerialClassRunner;
 import com.hazelcast.test.HazelcastTestSupport;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
 import com.hazelcast.test.annotation.QuickTest;
-import com.n26.request.Input;
+import com.n26.constants.N26Constants;
+import com.n26.request.Transaction;
 
 @RunWith(HazelcastSerialClassRunner.class)
 @Category(QuickTest.class)
@@ -37,27 +38,27 @@ public class HazelCastInstanceTest extends HazelcastTestSupport {
 	    }
 	    
 	    @Test
-	    public void testInputInMemory() {
-	    	IMap<String, Input> inputMap = inMemoryStore.getMap("input");
-	    	Input input = new Input();
-	    	input.setAmount(200.45);
-	    	input.setTimestamp(1503214913875l);
-	    	inputMap.put("Test", input);
-	    	Map<String, Input> inputMap1 = inMemoryStore.getMap("input");
-	    	Assert.assertNotNull(inputMap1.get("Test"));
-	    	Assert.assertEquals(200.45, inputMap1.get("Test").getAmount(), 0);
-	    	Assert.assertEquals(true, inputMap1.get("Test").getTimestamp() == input.getTimestamp());
+	    public void testTransactionInMemory() {
+	    	IMap<String, Transaction> transactionMap = inMemoryStore.getMap(N26Constants.HAZEL_TRANSACTION);
+	    	Transaction transaction = new Transaction();
+	    	transaction.setAmount(200.45);
+	    	transaction.setTimestamp(1503214913875l);
+	    	transactionMap.put("Test", transaction);
+	    	Map<String, Transaction> transactionMap1 = inMemoryStore.getMap(N26Constants.HAZEL_TRANSACTION);
+	    	Assert.assertNotNull(transactionMap1.get("Test"));
+	    	Assert.assertEquals(200.45, transactionMap1.get("Test").getAmount(), 0);
+	    	Assert.assertEquals(true, transactionMap1.get("Test").getTimestamp() == transaction.getTimestamp());
 	    }
 	    
 	    @Test
-	    public void testTimeLivedForInput() throws Exception {
-	    	IMap<String, Input> inputMap = inMemoryStore.getMap("input");
-	    	Input input = new Input();
-	    	input.setAmount(200.45);
-	    	input.setTimestamp(1503214913875l);
-	    	inputMap.put("Test1", input, 2, TimeUnit.SECONDS);
-	    	Thread.sleep(10000);
-	    	Map<String, Input> inputMap1 = inMemoryStore.getMap("input");
-	    	Assert.assertNull(inputMap1.get("Test1"));
+	    public void testTimeLivedForTransaction() throws Exception {
+	    	IMap<String, Transaction> transactionMap = inMemoryStore.getMap(N26Constants.HAZEL_TRANSACTION);
+	    	Transaction transaction = new Transaction();
+	    	transaction.setAmount(200.45);
+	    	transaction.setTimestamp(1503214913875l);
+	    	transactionMap.put("Test1", transaction, 2, TimeUnit.SECONDS);
+	    	Thread.sleep(2000);
+	    	Map<String, Transaction> transactionMap1 = inMemoryStore.getMap(N26Constants.HAZEL_TRANSACTION);
+	    	Assert.assertNull(transactionMap1.get("Test1"));
 	    }
 }

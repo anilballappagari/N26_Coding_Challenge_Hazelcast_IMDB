@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
-import com.n26.request.Input;
+import com.n26.request.Transaction;
 import com.n26.store.TransactionStore;
 import com.n26.util.N26Utility;
 
@@ -32,21 +32,21 @@ public class InitApp {
 	@RequestMapping(method = { RequestMethod.GET }, produces = { "application/json" }, path = "/statistics")
 	String statistics() {
 		LOGGER.info("Fetching transactions........");
-		return new Gson().toJson(TransactionStore.getInstance().getOutputFromStore());
+		return new Gson().toJson(TransactionStore.getInstance().getStatisticsFromStore());
 	}
 
 	/**
-	 * @param input
+	 * @param transaction
 	 *            which needs to be calculated for statistics.
 	 * @param response
 	 * @return 201 if valid transaction else 204
 	 */
 	@RequestMapping(method = { RequestMethod.POST }, produces = { "application/json" }, consumes = {
 			"application/json" }, path = "/transactions")
-	ResponseEntity<String> transactions(@RequestBody Input input, HttpServletResponse response) {
+	ResponseEntity<String> transactions(@RequestBody Transaction transaction, HttpServletResponse response) {
 		LOGGER.info("Adding the transaction.....");
-		if (N26Utility.validateTransaction(input.getTimestamp())) {
-			TransactionStore.getInstance().addToStore(input);
+		if (N26Utility.validateTransaction(transaction.getTimestamp())) {
+			TransactionStore.getInstance().addToStore(transaction);
 			LOGGER.info("Successfully added the transaction....");
 			return new ResponseEntity<String>(HttpStatus.CREATED);
 		}

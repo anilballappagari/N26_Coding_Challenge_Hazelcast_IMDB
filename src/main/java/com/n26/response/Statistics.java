@@ -3,6 +3,10 @@
  */
 package com.n26.response;
 
+import static com.n26.constants.N26Constants.HAZEL_AMOUNT;
+import static com.n26.constants.N26Constants.HAZEL_TRANSACTION;
+import static com.n26.constants.N26Constants.HAZEL_STATISTICS;
+
 import java.io.Serializable;
 import java.util.Map;
 
@@ -16,7 +20,7 @@ import com.n26.store.TransactionStore;
  * @version 2.0
  *
  */
-public class Output implements Serializable {
+public class Statistics implements Serializable {
 	/**
 	 * 
 	 */
@@ -68,17 +72,17 @@ public class Output implements Serializable {
 	}
 
 	private double getMaxAmount() {
-		Map<Long, Double> inputMap = TransactionStore.getInstance().getInMemoryStore().getMap("amount");
-		if (inputMap.size() > 0) {
-			return inputMap.values().parallelStream().max((d1, d2) -> Double.compare(d1, d2)).get();
+		Map<Long, Double> transactionMap = TransactionStore.getInstance().getInMemoryStore().getMap(HAZEL_AMOUNT);
+		if (transactionMap.size() > 0) {
+			return transactionMap.values().parallelStream().max((d1, d2) -> Double.compare(d1, d2)).get();
 		}
 		return 0;
 	}
 
 	private double getMinAmount() {
-		Map<Long, Double> inputMap = TransactionStore.getInstance().getInMemoryStore().getMap("amount");
-		if (inputMap.size() > 0) {
-			return inputMap.values().parallelStream().min((d1, d2) -> Double.compare(d1, d2)).get();
+		Map<Long, Double> transactionMap = TransactionStore.getInstance().getInMemoryStore().getMap(HAZEL_AMOUNT);
+		if (transactionMap.size() > 0) {
+			return transactionMap.values().parallelStream().min((d1, d2) -> Double.compare(d1, d2)).get();
 		}
 		return 0;
 	}
@@ -87,34 +91,34 @@ public class Output implements Serializable {
 		HazelcastInstance inMemoryStore = TransactionStore.getInstance().getInMemoryStore();
 		double max = getMaxAmount();
 		double min = getMinAmount();
-		int count = inMemoryStore.getMap("input").size();
-		IAtomicReference<Output> out = inMemoryStore.getAtomicReference("output");
-		out.alter(new IFunction<Output, Output>() {
+		int count = inMemoryStore.getMap(HAZEL_TRANSACTION).size();
+		IAtomicReference<Statistics> stats = inMemoryStore.getAtomicReference(HAZEL_STATISTICS);
+		stats.alter(new IFunction<Statistics, Statistics>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Output apply(Output out) {
+			public Statistics apply(Statistics stat) {
 				if (!isExpired) {
-					out.setSum((double) Math.round((out.getSum() + amount) * 100) / 100);
+					stat.setSum((double) Math.round((stat.getSum() + amount) * 100) / 100);
 				} else {
-					out.setSum((double) Math.round((out.getSum() - amount) * 100) / 100);
+					stat.setSum((double) Math.round((stat.getSum() - amount) * 100) / 100);
 				}
-				out.setCount(count);
+				stat.setCount(count);
 				if (count > 0) {
-					out.setAvg((double) Math.round((out.getSum() / out.getCount() * 100)) / 100);
+					stat.setAvg((double) Math.round((stat.getSum() / stat.getCount() * 100)) / 100);
 				} else {
-					out.setAvg(0);
+					stat.setAvg(0);
 				}
-				out.setMax(max);
-				out.setMin(min);
-				return out;
+				stat.setMax(max);
+				stat.setMin(min);
+				return stat;
 			}
 		});
 	}
 
 	@Override
 	public String toString() {
-		return "Output [sum=" + sum + ", avg=" + avg + ", max=" + max + ", min=" + min + ", count=" + count + "]";
+		return "Statistics [sum=" + sum + ", avg=" + avg + ", max=" + max + ", min=" + min + ", count=" + count + "]";
 	}
 }

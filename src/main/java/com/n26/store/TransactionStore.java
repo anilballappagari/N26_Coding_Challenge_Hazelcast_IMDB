@@ -1,5 +1,9 @@
 package com.n26.store;
 
+import static com.n26.constants.N26Constants.HAZEL_COUNTER;
+import static com.n26.constants.N26Constants.HAZEL_TRANSACTION;
+import static com.n26.constants.N26Constants.HAZEL_STATISTICS;
+
 import java.util.concurrent.TimeUnit;
 
 import com.hazelcast.core.HazelcastInstance;
@@ -7,9 +11,9 @@ import com.hazelcast.core.IAtomicLong;
 import com.hazelcast.core.IAtomicReference;
 import com.hazelcast.core.IMap;
 import com.n26.init.HazelCastFactory;
-import com.n26.listener.InputListener;
-import com.n26.request.Input;
-import com.n26.response.Output;
+import com.n26.listener.TransactionListener;
+import com.n26.request.Transaction;
+import com.n26.response.Statistics;
 
 /**
  * TransactionStore takes care of storing the data to Hazelcast IMDB's.
@@ -33,13 +37,13 @@ public final class TransactionStore {
 	}
 
 	/**
-	 * initialize {@code inMemoryStore} and add {@link InputListener} to input
+	 * initialize {@code inMemoryStore} and add {@link TransactionListener} to input
 	 * map.
 	 */
 	private TransactionStore() {
 		inMemoryStore = HazelCastFactory.getInstance();
-		IMap<Long, Input> inputMap = inMemoryStore.getMap("input");
-		inputMap.addEntryListener(new InputListener(), true);
+		IMap<Long, Transaction> transactionMap = inMemoryStore.getMap(HAZEL_TRANSACTION);
+		transactionMap.addEntryListener(new TransactionListener(), true);
 	}
 
 	/**
@@ -50,24 +54,24 @@ public final class TransactionStore {
 	}
 
 	/**
-	 * @return {@link Output} which contains the statistics
+	 * @return {@link Statistics} which contains the statistics
 	 */
-	public final Output getOutputFromStore() {
-		IAtomicReference<Output> output = inMemoryStore.getAtomicReference("output");
-		return output.get();
+	public final Statistics getStatisticsFromStore() {
+		IAtomicReference<Statistics> statistics = inMemoryStore.getAtomicReference(HAZEL_STATISTICS);
+		return statistics.get();
 	}
 
 	/**
-	 * add {@link Input} to hazelcast input map
+	 * add {@link Transaction} to hazelcast input map
 	 * 
 	 * @param input
 	 *            which contains the timestamp and amount
 	 */
-	public void addToStore(Input input) {
-		IMap<Long, Input> inputMap = inMemoryStore.getMap("input");
-		IAtomicLong inputCounter = inMemoryStore.getAtomicLong("inputCounter");
-		inputMap.put(inputCounter.incrementAndGet(), input, 60, TimeUnit.SECONDS);
+	public void addToStore(Transaction input) {
+		IMap<Long, Transaction> transactiontMap = inMemoryStore.getMap(HAZEL_TRANSACTION);
+		IAtomicLong transactionCounter = inMemoryStore.getAtomicLong(HAZEL_COUNTER);
+		transactiontMap.put(transactionCounter.incrementAndGet(), input, 60, TimeUnit.SECONDS);
 		IMap<Long, Double> amountMap = inMemoryStore.getMap("amount");
-		amountMap.put(inputCounter.get(), input.getAmount());
+		amountMap.put(transactionCounter.get(), input.getAmount());
 	}
 }

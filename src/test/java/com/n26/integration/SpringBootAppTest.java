@@ -16,8 +16,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.google.gson.Gson;
 import com.n26.init.InitApp;
-import com.n26.request.Input;
-import com.n26.response.Output;
+import com.n26.request.Transaction;
+import com.n26.response.Statistics;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=WebEnvironment.RANDOM_PORT, classes = InitApp.class)
@@ -28,39 +28,39 @@ public class SpringBootAppTest {
 	
 	@Test
 	public void testSuccessTransaction() {
-		Input input = new Input();
-		input.setAmount(1);
-		input.setTimestamp(Instant.ofEpochMilli(System.currentTimeMillis()-1000).toEpochMilli());
-		ResponseEntity<String> responseEntity = restTemplate.postForEntity("/transactions",	input, String.class);
+		Transaction transaction = new Transaction();
+		transaction.setAmount(1);
+		transaction.setTimestamp(Instant.ofEpochMilli(System.currentTimeMillis()-1000).toEpochMilli());
+		ResponseEntity<String> responseEntity = restTemplate.postForEntity("/transactions",	transaction, String.class);
 		Assert.assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
 	}
 	
 	@Test
 	public void testFailureTransaction() {
-		Input input = new Input();
-		input.setAmount(1);
+		Transaction transaction = new Transaction();
+		transaction.setAmount(1);
 		long delay = TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()) - 61);
-		input.setTimestamp(Instant.ofEpochMilli(delay).toEpochMilli());
-		ResponseEntity<String> responseEntity = restTemplate.postForEntity("/transactions",	input, String.class);
+		transaction.setTimestamp(Instant.ofEpochMilli(delay).toEpochMilli());
+		ResponseEntity<String> responseEntity = restTemplate.postForEntity("/transactions",	transaction, String.class);
 		Assert.assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
 	}
 	
 	@Test
 	public void testOutput() throws InterruptedException {
-		Input input = new Input();
-		input.setAmount(2);
+		Transaction transaction = new Transaction();
+		transaction.setAmount(2);
 		long delay = TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()) - 30);
-		input.setTimestamp(Instant.ofEpochMilli(delay).toEpochMilli());
-		ResponseEntity<String> responseEntity = restTemplate.postForEntity("/transactions",	input, String.class);
+		transaction.setTimestamp(Instant.ofEpochMilli(delay).toEpochMilli());
+		ResponseEntity<String> responseEntity = restTemplate.postForEntity("/transactions",	transaction, String.class);
 		Assert.assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
 		Thread.sleep(500);
-		ResponseEntity<String> output = restTemplate.getForEntity("/statistics", String.class);
-		Output out = new Gson().fromJson(output.getBody(), Output.class);
-		Assert.assertEquals(out.getSum(), 3, 0);
-		Assert.assertEquals(out.getCount(), 2);
-		Assert.assertEquals(out.getMax(), 2, 0);
-		Assert.assertEquals(out.getMin(), 1, 0);
-		Assert.assertEquals(out.getAvg(), 1.5, 0);
+		ResponseEntity<String> stats = restTemplate.getForEntity("/statistics", String.class);
+		Statistics stat = new Gson().fromJson(stats.getBody(), Statistics.class);
+		Assert.assertEquals(stat.getSum(), 3, 0);
+		Assert.assertEquals(stat.getCount(), 2);
+		Assert.assertEquals(stat.getMax(), 2, 0);
+		Assert.assertEquals(stat.getMin(), 1, 0);
+		Assert.assertEquals(stat.getAvg(), 1.5, 0);
 	}
 	
 	

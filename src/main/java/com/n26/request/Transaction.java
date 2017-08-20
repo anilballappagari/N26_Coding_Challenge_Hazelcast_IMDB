@@ -7,7 +7,7 @@ import java.io.Serializable;
  * @version 1.0
  *
  */
-public class Input implements Serializable {
+public class Transaction implements Serializable {
 	
 	
 	/**
