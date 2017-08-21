@@ -87,6 +87,12 @@ public class Statistics implements Serializable {
 		return 0;
 	}
 
+	/**
+	 * @param amount
+	 *            which needs to be calculated for stats
+	 * @param isExpired
+	 *            true if transaction is expired, else false.
+	 */
 	public void update(double amount, boolean isExpired) {
 		HazelcastInstance inMemoryStore = TransactionStore.getInstance().getInMemoryStore();
 		double max = getMaxAmount();

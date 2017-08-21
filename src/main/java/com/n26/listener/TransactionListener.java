@@ -1,13 +1,11 @@
 package com.n26.listener;
 
 import static com.n26.constants.N26Constants.HAZEL_AMOUNT;
-import static com.n26.constants.N26Constants.HAZEL_STATISTICS;
 
 import java.util.Map;
 
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IAtomicReference;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryExpiredListener;
 import com.n26.request.Transaction;
@@ -33,11 +31,8 @@ public class TransactionListener implements EntryAddedListener<Long, Transaction
 
 	@Override
 	public void entryAdded(EntryEvent<Long, Transaction> event) {
-		IAtomicReference<Statistics> stat = TransactionStore.getInstance().getInMemoryStore().getAtomicReference(HAZEL_STATISTICS);
-		if (stat.get() == null) {
-			stat.set(new Statistics());
-		}
-		stat.get().update(event.getValue().getAmount(), false);
+		Statistics stat = TransactionStore.getInstance().getStatisticsFromStore();
+		stat.update(event.getValue().getAmount(), false);
 	}
 
 	@Override
@@ -45,10 +40,7 @@ public class TransactionListener implements EntryAddedListener<Long, Transaction
 		HazelcastInstance inMemoryStore = TransactionStore.getInstance().getInMemoryStore();
 		Map<Long, Double> amountMap = inMemoryStore.getMap(HAZEL_AMOUNT);
 		amountMap.remove(event.getKey());
-		IAtomicReference<Statistics> stat = inMemoryStore.getAtomicReference(HAZEL_STATISTICS);
-		if (stat.get() == null) {
-			stat.set(new Statistics());
-		}
-		stat.get().update(event.getOldValue().getAmount(), true);
+		Statistics stat = TransactionStore.getInstance().getStatisticsFromStore();
+		stat.update(event.getOldValue().getAmount(), true);
 	}
 }

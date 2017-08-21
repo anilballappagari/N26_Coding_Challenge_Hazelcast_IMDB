@@ -58,6 +58,9 @@ public final class TransactionStore {
 	 */
 	public final Statistics getStatisticsFromStore() {
 		IAtomicReference<Statistics> statistics = inMemoryStore.getAtomicReference(HAZEL_STATISTICS);
+		if (statistics.get() == null) {
+			statistics.set(new Statistics());
+		}
 		return statistics.get();
 	}
 
